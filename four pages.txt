@@ -1,0 +1,228 @@
+Course: Web Technology Lab. (CI4191)
+Experiment List
+
+Category: Demonstration 
+Expt./ No. 	Experiment / Job Details 
+1.		Installation and configuration of Web servers 
+	Develop Web page using JSP/HTML for sign-up, Login and personal info and forth page will display all details of user including username ,email and personal information.
+Concepts to be learned.
+1.	HMTL form designing 
+2.	HttpRequest, HttpResponse using JSP
+3.	Session and cookies using JSP
+Sample forms are given below.
+   
+	Web pages development with Java Server Pages (JSP) 
+
+
+Signup.jsp
+<%@ page import="java.util.regex.Pattern" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%
+    String errorMessage = " ";
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String username = request.getParameter("username");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+
+        String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$";
+        boolean emailValid = Pattern.matches(emailPattern, email);
+        boolean passwordValid = password != null && password.length() >= 8;
+
+        if (emailValid && passwordValid) {
+            session.setAttribute("username", username);
+            session.setAttribute("email", email);
+            session.setAttribute("password", password);
+            response.sendRedirect("login.jsp");
+        } else {
+            if (!emailValid) {
+                errorMessage = "Invalid email format." + "<br>";
+            }
+            if (!passwordValid) {
+                if (errorMessage != null) {
+                    errorMessage += " ";
+                }
+                errorMessage += "Password must be at least 8 characters long.";
+            }
+            request.setAttribute("errorMessage", errorMessage);
+        }
+    }
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center;">
+    <div class="container">
+        <h2>Sign Up</h2>
+        <form action="signup.jsp" method="post">
+            
+            Username: <input type="text" name="username" required><br><br>
+            
+            Email: <input type="text" name="email" required><br><br>
+            
+            Password: <input type="password" name="password" required><br><br>
+            
+            <input type="submit" value="Sign Up">
+        </form>
+        <c:if test="${not empty errorMessage}">
+            <p style="color:red;">${errorMessage}</p>
+        </c:if>
+    </div>
+</body>
+</html>
+
+
+Login.jsp
+
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="java.io.*, javax.servlet.*, javax.servlet.http.*, javax.servlet.annotation.*" %>
+
+<%
+    String errorMessage = null;
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        String sessionUsername = (String) session.getAttribute("username");
+        String sessionPassword = (String) session.getAttribute("password");
+
+        if (sessionUsername != null && sessionUsername.equals(username) &&
+            sessionPassword != null && sessionPassword.equals(password)) {
+            response.sendRedirect("personalinfo.jsp");
+        } else {
+            errorMessage = "Invalid username or password.";
+            request.setAttribute("errorMessage", errorMessage);
+        }
+    }
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body style="display: flex; justify-content: center; align-items: center;">
+    <div class="container">
+    <h2>Login</h2>
+    <form action="login.jsp" method="post">
+        Username: <input type="text" id="username" name="username" required><br><br>
+        Password:  <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Login">
+    </form>
+    <c:if test="${not empty errorMessage}">
+        <p style="color:red;">${errorMessage}</p>
+    </c:if>
+    </div>
+</body>
+</html>
+
+personalinfo.jsp
+<%@ page import="java.io.*, javax.servlet.*, javax.servlet.http.*, javax.servlet.annotation.*" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %> 
+<%
+    String errorMessage = null;
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String password = request.getParameter("password");
+        String city = request.getParameter("city");
+        String server = request.getParameter("server");
+        String role = request.getParameter("role");
+        String sso = request.getParameter("sso");
+
+        // Fetch the stored password from the session
+        String sessionPassword = (String) session.getAttribute("password");
+
+        // Validate the password
+        boolean passwordValid = password != null && password.equals(sessionPassword) && password.length() >= 6;
+
+        if (passwordValid) {
+            session.setAttribute("city", city);
+            session.setAttribute("server", server);
+            session.setAttribute("role", role);
+            session.setAttribute("sso", sso);
+            response.sendRedirect("details.jsp");
+        } else {
+            errorMessage = "Invalid password. Ensure it matches the original";
+            request.setAttribute("errorMessage", errorMessage);
+        }
+    }
+%>
+<!DOCTYPE html>
+<html>
+<%-- <head>
+    <title>Personal Info</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head> --%>
+<body style="display: flex; justify-content: center; align-items: center; ">
+    <div class="container">
+        <h2>Personal Information</h2>
+        <form action="personalinfo.jsp" method="post">
+            
+            Username: <input type="text" id="username" name="username" required> <br><br>
+            
+            Password: <input type="password" id="password" name="password" required> <br><br>
+            
+            City of Employment: <input type="text" id="city" name="city" required> <br><br>
+            
+            Web Server: 
+            <select id="server" name="server" required>
+                <option value="">Choose a server</option>
+                <option value="Apache">Apache</option>
+                <option value="Nginx">Nginx</option>
+                <option value="IIS">IIS</option>
+                <option value="Tomcat">Tomcat</option>
+            </select> <br><br>
+
+            <label for="role">Please specify your role:</label> <br><br>
+            <input type="radio" id="admin" name="role" value="Admin" required> Admin <br><br>
+
+            <input type="radio" id="engineer" name="role" value="Engineer" required> Engineer <br><br>
+
+            <input type="radio" id="manager" name="role" value="Manager" required> Manager <br><br>
+
+            <input type="radio" id="guest" name="role" value="Guest" required> Guest <br><br>
+
+            <label for="sso">Single Sign-On:</label>
+            <select id="sso" name="sso" required>
+                <option value="email">Mail</option>
+                <option value="Payroll">Payroll</option>
+                <option value="self_service">Self-service</option>
+            </select>  <br><br>
+            <input type="submit" value="Submit">
+            <input type="reset" value="Reset">
+        </form>
+        <c:if test="${not empty errorMessage}">
+        <p style="color:red;">${errorMessage}</p>
+    </c:if>
+    </div>
+</body>
+</html>
+
+details.jsp
+<%@ page import="java.io.*, javax.servlet.*, javax.servlet.http.*, javax.servlet.annotation.*" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %> 
+<%
+    String username = (String) session.getAttribute("username");
+    String password = (String) session.getAttribute("password");
+    String city = (String) session.getAttribute("city");
+    String server = (String) session.getAttribute("server");
+    String role = (String) session.getAttribute("role");
+    String sso = (String) session.getAttribute("sso");
+%>
+<!DOCTYPE html>
+<html>
+
+<body style="display: flex; justify-content: center; align-items: center;">
+    <div class="container">
+        <h2>User Details</h2>
+        <p>Username: <c:out value="${sessionScope.username}"/></p>
+        <p>Password: <c:out value="${sessionScope.password}"/></p>
+        <p>City of Employment: <c:out value="${sessionScope.city}"/></p>
+        <p>Web Server: <c:out value="${sessionScope.server}"/></p>
+        <p>Role: <c:out value="${sessionScope.role}"/></p>
+        <p>SSO: <c:out value="${sessionScope.sso}"/></p>
+    </div>
+</body>
+</html>
+
